@@ -1,0 +1,33 @@
+# pixi environments
+.pixi/*
+!.pixi/config.toml
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+
+# os
+.DS_Store
+
+# secrets
+.env
+.env.*
+!.env.example
+
+# runtime data and adapters
+/data/raw/
+/data/work/
+/lora/sft/
+/lora/adapters/
+/lora/pairs.jsonl
+/lora/pairs.dropped.jsonl
+/lora/*.duckdb
+/lora/*.duckdb.wal
+/lora/*.duckdb.tmp
+/lora/*.duckdb.tmp.wal
+**/*.duckdb
+**/*.duckdb.wal
+personal_hub/
+/env/hardware.toml

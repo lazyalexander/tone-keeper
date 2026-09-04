@@ -1,0 +1,52 @@
+[unit]
+min_chars = 20
+max_chars = 200
+heldout_ratio = 0.2
+seed = 0
+
+# rewrite-time: tau_pair = embed cosine (ŷ vs A); tau_copy = char n-gram.
+# training content gate: EMBED_COSINE_MIN in tone_keeper/filter/decide.py
+[filter]
+tau_pair = 0.80
+tau_len = 0.40
+max_expand = 2.5
+tau_copy = 0.97
+
+[infer]
+n_samples = 8
+temperature = 0.9
+max_tokens = 256
+
+[student]
+model = "mlx-community/Qwen3-4B-Instruct-2507-4bit"
+adapter_path = "lora/adapters/default"
+
+[teacher]
+provider = "deepseek"
+model = "deepseek-v4-flash"
+base_url = "https://api.deepseek.com"
+max_tokens = 512
+temperature = 0.3
+
+[embed]
+model = "mlx-community/Qwen3-Embedding-0.6B-8bit"
+batch_size = 16
+
+[lora]
+iters = 600
+batch_size = 2
+learning_rate = 1.0e-5
+fine_tune_type = "lora"
+num_layers = 16
+mask_prompt = true
+max_seq_length = 1024
+
+[prompts]
+student = """将下面的文字转写成我的口语。保持原意。不要润色，不要补充，不要解释，不要扩写成更长的段落。
+
+{A}"""
+teacher = """把下面这段改写成常见的大模型书面语：完整、中性、去掉个人口吻和标点习惯。
+必须保持原意和大致篇幅：不要增删事实，不要改立场，不要写成更长的文章，不要解释。
+只输出改写后的正文。
+
+{U}"""

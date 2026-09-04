@@ -1,0 +1,23 @@
+# Environment policy. Manifest + lock live at repo root:
+#   pixi.toml   — declared deps
+#   pixi.lock   — resolved pins
+# This file is the human-readable constraint list for that manifest.
+
+python = "3.12.*"
+platforms = ["osx-arm64"]
+channels = ["conda-forge"]
+
+[stack]
+conda = ["python", "numpy", "scipy", "scikit-learn", "sentencepiece", "pytest", "duckdb", "httpx"]
+pypi  = ["mlx", "mlx-lm", "huggingface-hub", "transformers", "jieba", "safetensors", "mlx-embeddings"]
+
+[forbidden]
+# Base model train/infer is MLX. Do not add these without an explicit decision.
+packages = ["pytorch", "torch", "tensorflow", "jax", "unsloth", "llama-factory"]
+
+[commands]
+install = "pixi install"
+check   = "pixi run check-env"
+test    = "pixi run test"
+python  = "pixi run python"
+shell   = "pixi shell"

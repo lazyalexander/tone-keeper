@@ -1,0 +1,38 @@
+[workspace]
+authors = ["AlexanderMichael"]
+channels = ["conda-forge"]
+name = "tone-keeper"
+description = "Local personal register transfer. Apple Silicon, MLX only."
+platforms = ["osx-arm64"]
+version = "0.1.0"
+
+[system-requirements]
+macos = "14.0"
+
+[dependencies]
+python = "3.12.*"
+numpy = "*"
+scipy = "*"
+scikit-learn = "*"
+sentencepiece = "*"
+pytest = ">=9.1.1,<10"
+duckdb = ">=1.5.5,<2"
+httpx = ">=0.28.1,<0.29"
+
+[pypi-dependencies]
+mlx = "*"
+mlx-lm = "*"
+huggingface-hub = "*"
+transformers = "*"
+jieba = "*"
+safetensors = "*"
+mlx-embeddings = ">=0.1.0, <0.2"
+
+[activation.env]
+PYTHONPATH = "."
+
+[tasks]
+check-env = "python env/check_env.py"
+shell-info = "python -c 'import sys; print(sys.executable); print(sys.version)'"
+test = "pytest -q"
+download-models = "python env/download_models.py"
