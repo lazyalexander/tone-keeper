@@ -33,4 +33,10 @@ def test_profile_roundtrip():
     profile = build_profile(ORAL)
     restored = profile_from_dict(profile.to_dict())
     assert restored.vocab == profile.vocab
+    assert restored.ruler == "v0_punct_func"
     assert style_distance(ORAL[0], restored) == style_distance(ORAL[0], profile)
+
+
+def test_old_profile_without_ruler_field_is_v0():
+    restored = profile_from_dict({"mean": [0.1], "std": [1.0], "names": ["punct:，"]})
+    assert restored.ruler == "v0_punct_func"

@@ -32,6 +32,11 @@ temperature = 0.3
 model = "mlx-community/Qwen3-Embedding-0.6B-8bit"
 batch_size = 16
 
+# Style instrument used to build F and at rewrite/eval.
+# Rebuild data/work/profile.json after changing this. v1 has not passed T2.
+[style]
+ruler = "v0_punct_func"
+
 [lora]
 iters = 300
 batch_size = 2

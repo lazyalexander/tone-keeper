@@ -1,9 +1,11 @@
+import json
 from pathlib import Path
 
 import pytest
 
-from rulers import RULERS
+from rulers import RULERS, assert_profile_matches_config, load_ruler
 from rulers.accept import accept_path, build_document, load_criteria, require_accept_file
+from rulers.core import profile_from_dict
 from rulers.fixtures import T2_CONTRAST, T3_CONFUSABLE
 from rulers.harness import eval_ruler
 from rulers.v0_punct_func import PunctFuncV0
@@ -61,6 +63,8 @@ def test_every_registered_ruler_has_accept_json():
     for name in RULERS:
         path = require_accept_file(name)
         assert path == accept_path(name)
+        assert path.parent.name == name
+        assert path.name == "accept.json"
         criteria = load_criteria(name)
         assert "t1_held_pass" in criteria
         assert "t2_contrast_pass" in criteria
@@ -71,3 +75,47 @@ def test_missing_accept_json_fails(tmp_path: Path, monkeypatch):
     monkeypatch.setattr("rulers.accept._RULERS_DIR", tmp_path)
     with pytest.raises(FileNotFoundError, match="missing"):
         require_accept_file("v9_missing")
+
+
+def test_load_ruler_unknown():
+    with pytest.raises(KeyError, match="unknown style.ruler"):
+        load_ruler("v9_nope")
+
+
+def test_profile_matches_configured_ruler():
+    profile = PunctFuncV0().build(
+        ["今天早上又堵了啊，真的让人无语了呢吧。"] * 3,
+    )
+    assert_profile_matches_config(profile, "v0_punct_func")
+    with pytest.raises(ValueError, match="rebuild"):
+        assert_profile_matches_config(profile, "v1_corpus_func")
+
+
+def test_build_and_write_profile_stamps_ruler(tmp_path: Path):
+    from tone_keeper.pipeline import build_and_write_profile
+
+    units = [
+        {
+            "id": "1",
+            "source_id": "s",
+            "text": "今天早上又堵了啊，真的让人无语了呢吧。",
+        }
+    ]
+    out = tmp_path / "profile.json"
+    profile = build_and_write_profile(units, out, ruler_name="v0_punct_func")
+    assert profile.ruler == "v0_punct_func"
+    dumped = profile_from_dict(json.loads(out.read_text(encoding="utf-8")))
+    assert dumped.ruler == "v0_punct_func"
+
+
+def test_rewrite_mismatch_fails_before_sample():
+    from tone_keeper.config import load
+    from tone_keeper.infer.rewrite import rewrite
+
+    cfg = load("configs/default.toml")
+    profile = PunctFuncV0().build(
+        ["今天早上又堵了啊，真的让人无语了呢吧。"] * 3,
+    )
+    profile.ruler = "v1_corpus_func"
+    with pytest.raises(ValueError, match="rebuild"):
+        rewrite("source", profile, cfg, sampler=object())  # type: ignore[arg-type]

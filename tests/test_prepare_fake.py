@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from tone_keeper.config import load
@@ -21,6 +22,8 @@ def test_fake_prepare_writes_sft(tmp_path: Path, monkeypatch):
     assert train.read_text(encoding="utf-8").strip()
     profile = tmp_path / "data" / "work" / "profile.json"
     assert profile.exists()
+    assert json.loads(profile.read_text(encoding="utf-8"))["ruler"] == "v0_punct_func"
+    assert stats["ruler"] == "v0_punct_func"
     assert stats["round"] == 1
     assert (tmp_path / "lora" / "catalog.duckdb").exists()
     assert (tmp_path / "lora" / "pairs.jsonl").exists()

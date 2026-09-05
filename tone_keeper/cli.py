@@ -4,9 +4,10 @@ import argparse
 import json
 from pathlib import Path
 
+from rulers import assert_profile_matches_config
 from tone_keeper.config import Config, load
 from tone_keeper.envfile import load_dotenv
-from tone_keeper.fingerprint.profile import profile_from_dict
+from tone_keeper.fingerprint.profile import Profile, profile_from_dict
 from tone_keeper.paths import adapter_dir, sft_dir, work_dir
 from tone_keeper.pipeline import ingest, load_pairs, prepare, split_and_write
 from tone_keeper.pipeline import build_and_write_profile
@@ -15,6 +16,12 @@ from tone_keeper.data.jsonl import read_jsonl, write_jsonl
 
 def _cfg(path: str | None) -> Config:
     return load(path)
+
+
+def _read_profile(path: str, ruler_name: str) -> Profile:
+    profile = profile_from_dict(json.loads(Path(path).read_text(encoding="utf-8")))
+    assert_profile_matches_config(profile, ruler_name)
+    return profile
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -102,8 +109,13 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.cmd == "profile":
         units = read_jsonl(Path(args.units))
-        profile = build_and_write_profile(units, Path(args.out))  # type: ignore[arg-type]
-        print(json.dumps({"units": len(units), "dim": len(profile.mean)}, ensure_ascii=False))
+        profile = build_and_write_profile(units, Path(args.out), ruler_name=cfg.style.ruler)  # type: ignore[arg-type]
+        print(
+            json.dumps(
+                {"units": len(units), "dim": len(profile.mean), "ruler": profile.ruler},
+                ensure_ascii=False,
+            )
+        )
         return 0
 
     if args.cmd == "prepare":
@@ -212,7 +224,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "rewrite":
         from tone_keeper.infer.rewrite import rewrite
 
-        profile = profile_from_dict(json.loads(Path(args.profile).read_text(encoding="utf-8")))
+        profile = _read_profile(args.profile, cfg.style.ruler)
         adapter = Path(args.adapter) if args.adapter else adapter_dir()
         result = rewrite(args.text, profile, cfg, adapter_path=adapter)
         payload = {
@@ -228,7 +240,7 @@ def main(argv: list[str] | None = None) -> int:
         from tone_keeper.eval.heldout import eval_heldout
         from tone_keeper.infer.generate import MlxSampler
 
-        profile = profile_from_dict(json.loads(Path(args.profile).read_text(encoding="utf-8")))
+        profile = _read_profile(args.profile, cfg.style.ruler)
         pairs = load_pairs(Path(args.pairs))
         adapter = Path(args.adapter) if args.adapter else adapter_dir()
         sampler = MlxSampler(cfg, adapter_path=adapter)
@@ -245,7 +257,7 @@ def main(argv: list[str] | None = None) -> int:
         from tone_keeper.eval.metrics import summarize_destroy
         from tone_keeper.observe import record
 
-        profile = profile_from_dict(json.loads(Path(args.profile).read_text(encoding="utf-8")))
+        profile = _read_profile(args.profile, cfg.style.ruler)
         pairs = load_pairs(Path(args.pairs))
         ok_pairs = [
             (p["u"], p["a"])
@@ -258,14 +270,17 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.cmd == "calib-style":
-        from tone_keeper.fingerprint.calibrate import run_calibration
+        from rulers.__main__ import main as rulers_main
 
-        units = read_jsonl(Path(args.units))
-        pairs = load_pairs(Path(args.pairs))
-        splits = json.loads(Path(args.splits).read_text(encoding="utf-8"))
-        train_ids = set(splits["train_ids"])
-        summary = run_calibration(units, pairs, train_ids)  # type: ignore[arg-type]
-        print(json.dumps(summary, ensure_ascii=False))
-        return 0
+        return rulers_main(
+            [
+                "--units",
+                args.units,
+                "--pairs",
+                args.pairs,
+                "--splits",
+                args.splits,
+            ]
+        )
 
     return 2

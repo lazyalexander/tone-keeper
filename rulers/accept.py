@@ -1,8 +1,8 @@
 """Load per-ruler acceptance criteria and stamp a run document.
 
-Every registered ruler MUST ship a sibling file:
+Every ruler kit MUST ship:
 
-    rulers/{ruler.name}.accept.json
+    rulers/{ruler.name}/accept.json
 
 That file is the contract (criteria only). Evaluation writes the full
 document (criteria + run + verdict) to lora/logs/rulers/{name}.json.
@@ -30,15 +30,15 @@ _RULERS_DIR = Path(__file__).resolve().parent
 
 
 def accept_path(ruler_name: str) -> Path:
-    return _RULERS_DIR / f"{ruler_name}.accept.json"
+    return _RULERS_DIR / ruler_name / "accept.json"
 
 
 def require_accept_file(ruler_name: str) -> Path:
     path = accept_path(ruler_name)
     if not path.is_file():
         raise FileNotFoundError(
-            f"ruler {ruler_name!r} is missing {path.name}; "
-            "every version must ship a sibling .accept.json"
+            f"ruler {ruler_name!r} is missing {path}; "
+            "every kit must ship accept.json inside its package"
         )
     return path
 

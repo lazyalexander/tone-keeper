@@ -3,7 +3,7 @@
     pixi run python -m rulers
     pixi run python -m rulers --ruler v0_punct_func
 
-Each ruler must have rulers/{name}.accept.json. Full run documents go to
+Each ruler kit must ship rulers/{name}/accept.json. Full run documents go to
 lora/logs/rulers/{name}.json (gitignored).
 """
 

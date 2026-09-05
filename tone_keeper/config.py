@@ -56,6 +56,11 @@ class LoraConfig:
 
 
 @dataclass(frozen=True)
+class StyleConfig:
+    ruler: str = "v0_punct_func"
+
+
+@dataclass(frozen=True)
 class EmbedConfig:
     model: str = "mlx-community/Qwen3-Embedding-0.6B-8bit"
     batch_size: int = 16
@@ -83,6 +88,7 @@ class Config:
     lora: LoraConfig
     prompts: PromptConfig
     embed: EmbedConfig
+    style: StyleConfig
 
 
 def _section(data: dict[str, Any], name: str) -> dict[str, Any]:
@@ -105,6 +111,7 @@ def load(path: str | Path | None = None) -> Config:
         lora=LoraConfig(**_section(raw, "lora")),
         prompts=PromptConfig(**_section(raw, "prompts")),
         embed=EmbedConfig(**_section(raw, "embed")),
+        style=StyleConfig(**_section(raw, "style")),
     )
 
 

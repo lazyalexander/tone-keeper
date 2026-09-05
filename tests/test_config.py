@@ -15,3 +15,4 @@ def test_load_default():
     assert cfg.teacher.provider == "deepseek"
     assert cfg.teacher.model == "deepseek-v4-flash"
     assert "Qwen3-Embedding" in cfg.embed.model
+    assert cfg.style.ruler == "v0_punct_func"

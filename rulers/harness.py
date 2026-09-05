@@ -7,7 +7,7 @@ Measurements only:
     T2  = |{ x in contrast : d(x, F) <= tau }| / |contrast|
     T3  = |{ (s1,s2) : embed(s1,s2) < content_tau }| / |pairs|
 
-q and content_tau come from rulers/{name}.accept.json.
+q and content_tau come from rulers/{name}/accept.json.
 """
 
 from __future__ import annotations
@@ -59,6 +59,30 @@ def eval_ruler(
             for u, a in held_pairs
         ]
     )
+    n_pairs = len(held_pairs)
+    shift = max(1, n_pairs // 2) if n_pairs else 1
+    shuffled_rate = (
+        _rate(
+            [
+                ruler.distance(held_pairs[(i + shift) % n_pairs][1], profile)
+                > ruler.distance(held_pairs[i][0], profile)
+                for i in range(n_pairs)
+            ]
+        )
+        if n_pairs
+        else 0.0
+    )
+    trunc30_rate = (
+        _rate(
+            [
+                ruler.distance(a, profile)
+                > ruler.distance("".join(ch for ch in u if not ch.isspace())[:30], profile)
+                for u, a in held_pairs
+            ]
+        )
+        if n_pairs
+        else 0.0
+    )
     t3: dict[str, Any] = {"skipped": True}
     if embedder is not None and confusable:
         scores = embedder.cosine_many(confusable)
@@ -80,6 +104,8 @@ def eval_ruler(
         "t1_held_pass": round(t1, 4),
         "t2_contrast_pass": round(t2, 4),
         "destroy_rate_held": round(destroy_rate, 4),
+        "shuffled_rate_held": round(shuffled_rate, 4),
+        "trunc30_destroy_rate": round(trunc30_rate, 4),
         "mean_d_train": round(float(np.mean(d_train)) if d_train else 0.0, 4),
         "mean_d_held": round(float(np.mean(d_held)) if d_held else 0.0, 4),
         "mean_d_contrast": round(float(np.mean(d_t2)) if d_t2 else 0.0, 4),

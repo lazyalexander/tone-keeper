@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from rulers import assert_profile_matches_config
 from tone_keeper.config import Config
 from tone_keeper.filter.embed import default_embedder
 from tone_keeper.fingerprint.profile import Profile
@@ -16,6 +17,7 @@ def rewrite(
     adapter_path: Path | None = None,
     sampler: MlxSampler | None = None,
 ) -> RewriteResult:
+    assert_profile_matches_config(profile, cfg.style.ruler)
     engine = sampler or MlxSampler(cfg, adapter_path=adapter_path)
     candidates = engine.sample(source)
     embedder = default_embedder(cfg.embed.model, cfg.embed.batch_size)

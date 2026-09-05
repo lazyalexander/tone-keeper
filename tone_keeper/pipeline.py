@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Literal
 
+from rulers import load_ruler
 from tone_keeper.config import Config
 from tone_keeper.data.ingest import ingest_path
 from tone_keeper.data.jsonl import read_jsonl, write_jsonl
@@ -13,7 +14,7 @@ from tone_keeper.data.schema import Pair, Unit
 from tone_keeper.data.split import split_units_set
 from tone_keeper.filter.decide import decide
 from tone_keeper.filter.embed import Embedder, default_embedder, score_pairs
-from tone_keeper.fingerprint.profile import Profile, build_profile
+from tone_keeper.fingerprint.profile import Profile
 from tone_keeper.lora.catalog import catalog_path, write_pairs
 from tone_keeper.lora.export import apply_decision, export_sft
 from tone_keeper.paths import dropped_pairs_path, ensure_dir, pairs_path, sft_dir, work_dir
@@ -44,8 +45,12 @@ def split_and_write(units: list[Unit], cfg: Config, out_path: Path) -> dict:
     return payload
 
 
-def build_and_write_profile(units: list[Unit], out_path: Path) -> Profile:
-    profile = build_profile([u["text"] for u in units])
+def build_and_write_profile(
+    units: list[Unit],
+    out_path: Path,
+    ruler_name: str = "v0_punct_func",
+) -> Profile:
+    profile = load_ruler(ruler_name).build([u["text"] for u in units])
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(profile.to_dict(), ensure_ascii=False), encoding="utf-8")
     return profile
@@ -138,7 +143,7 @@ def prepare(
     train_units = [u for u in units if u["id"] in train_ids]
     held_units = [u for u in units if u["id"] in held_ids]
 
-    build_and_write_profile(units, work / "profile.json")
+    build_and_write_profile(train_units, work / "profile.json", ruler_name=cfg.style.ruler)
     destroyer = make_destroyer(destroyer_kind, cfg)
     train_pairs = destroy_units(train_units, "train", destroyer, cfg, workers=workers)
     held_pairs = destroy_units(held_units, "held", destroyer, cfg, workers=workers)
@@ -167,6 +172,7 @@ def prepare(
         "held_ok": sum(1 for p in held_pairs if p["ok"]),
         "dropped": len(dropped),
         "round": round,
+        "ruler": cfg.style.ruler,
         "db": str(db),
     }
 

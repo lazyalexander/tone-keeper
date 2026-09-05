@@ -1,16 +1,24 @@
 # rulers
 
-Experimental style instruments. Not imported by training or production gates.
+Style instruments. Each version is a **kit package**: alphabet + `f` + `F` + `d` + acceptance contract. Swap the package, do not mix parts across kits.
 
-Each version is a module plus a sibling **acceptance JSON**:
+Generic math (`FeatureScheme`, `Profile`, cosine / z-L2) lives in `rulers/core.py`. Training does not import this tree. Do not put F in the SFT loss.
 
-- `rulers/vN_name.py` — `build(train_U) -> F`, `distance(text, F) -> float` (lower = closer)
-- `rulers/vN_name.accept.json` — **required** contract (criteria only). Missing file is an error.
-- `rulers/accept.schema.json` — shape of the document
+Production gates import the v0 cosine instrument via `tone_keeper.fingerprint` re-exports. Config `[style] ruler` names the kit directory.
 
-A run stamps `criteria + run + verdict` to `lora/logs/rulers/{name}.json` (gitignored) and appends `lora/logs/events.jsonl` (`kind=ruler_eval`).
+## Kit layout
 
-Do not promote a ruler into `tone_keeper.infer.gates` until `verdict.hard_style_gate_ok` is true. T3 is a content-instrument check, not a style-gate license.
+```
+rulers/<name>/
+  __init__.py     # exports Ruler (build, distance); Ruler.name == directory name
+  accept.json     # required contract (criteria only)
+```
+
+A directory is a kit iff it has both files. `load_ruler(name)` imports `rulers.<name>`. Missing `accept.json` is not a kit.
+
+Evaluation stamps `criteria + run + verdict` to `lora/logs/rulers/{name}.json` (gitignored) and appends `lora/logs/events.jsonl` (`kind=ruler_eval`).
+
+Do not promote a kit into `tone_keeper.infer.gates` until `verdict.hard_style_gate_ok` is true. T3 is a content-instrument check, not a style-gate license.
 
 ## Protocols
 
@@ -39,12 +47,12 @@ Do not require T1 = 1.0 on 20–200 character units. That forces a vacuous ball 
 
 ## Versions
 
-| module | what |
+| package | what |
 |---|---|
 | `v0_punct_func` | Production baseline: 16 punct + 10 oral function chars, raw cosine to mean |
 | `v1_corpus_func` | Punct + function chars frequent in *this* train U, name chars dropped |
 
-Add a new version as `rulers/vN_*.py` **and** `rulers/vN_*.accept.json`, then register it in `RULERS`.
+Add a kit as `rulers/vN_name/` with `Ruler` and `accept.json`. No central registry edit.
 
 ## Data
 
@@ -60,4 +68,7 @@ Built-in T2/T3 fixtures ship in `rulers/fixtures.py` (not the user's corpus). Op
 ```
 pixi run python -m rulers
 pixi run python -m rulers --ruler v0_punct_func --skip-embed
+pixi run python -m tone_keeper calib-style
 ```
+
+`calib-style` is an alias of `python -m rulers`.
