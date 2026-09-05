@@ -1,0 +1,20 @@
+{
+  "ruler": "v0_punct_func",
+  "protocol": "t1_t2_t3_v1",
+  "criteria": {
+    "train_quantile": 0.8,
+    "content_tau": 0.8,
+    "t1_held_pass": {
+      "min": 0.8,
+      "note": "T1 FN: |{u in U_held : d(u,F) <= tau}| / |U_held|. tau = Q_q({d(u,F): u in U_train})."
+    },
+    "t2_contrast_pass": {
+      "max": 0.3,
+      "note": "T2 FP: |{x in contrast : d(x,F) <= tau}| / |contrast|. Other-register / generic AI."
+    },
+    "t3_content_fail_rate": {
+      "min": 0.8,
+      "note": "T3 content, not style: |{(s1,s2): embed(s1,s2) < content_tau}| / |pairs|. Confusable pairs."
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "rulers/accept.schema.json",
+  "title": "Ruler acceptance document",
+  "description": "Per-version contract (criteria) plus one evaluation run (run, verdict). Criteria files are committed; run payloads are written to lora/logs/rulers/.",
+  "type": "object",
+  "required": ["ruler", "protocol", "criteria"],
+  "properties": {
+    "ruler": { "type": "string" },
+    "protocol": { "const": "t1_t2_t3_v1" },
+    "criteria": {
+      "type": "object",
+      "required": ["t1_held_pass", "t2_contrast_pass", "t3_content_fail_rate", "train_quantile", "content_tau"],
+      "properties": {
+        "t1_held_pass": {
+          "type": "object",
+          "required": ["min"],
+          "properties": {
+            "min": { "type": "number" },
+            "note": { "type": "string" }
+          }
+        },
+        "t2_contrast_pass": {
+          "type": "object",
+          "required": ["max"],
+          "properties": {
+            "max": { "type": "number" },
+            "note": { "type": "string" }
+          }
+        },
+        "t3_content_fail_rate": {
+          "type": "object",
+          "required": ["min"],
+          "properties": {
+            "min": { "type": "number" },
+            "note": { "type": "string" }
+          }
+        },
+        "train_quantile": { "type": "number" },
+        "content_tau": { "type": "number" }
+      }
+    },
+    "run": { "type": ["object", "null"] },
+    "verdict": { "type": ["object", "null"] }
+  }
+}
