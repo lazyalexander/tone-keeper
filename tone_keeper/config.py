@@ -64,7 +64,7 @@ class EmbedConfig:
 @dataclass(frozen=True)
 class PromptConfig:
     student: str = (
-        "将下面的文字转写成我的口语。保持原意。不要润色，不要补充，不要解释，不要扩写成更长的段落。\n\n{A}"
+        "将下面的文字转写成我的文风。保持原意。不要润色，不要补充，不要解释，不要扩写成更长的段落。\n\n{A}"
     )
     teacher: str = (
         "把下面这段改写成常见的大模型书面语：完整、中性、去掉个人口吻和标点习惯。\n"

@@ -7,6 +7,8 @@ def test_load_default():
     assert cfg.unit.max_chars == 200
     assert "{A}" in cfg.prompts.student
     assert "扩写成更长的段落" in cfg.prompts.student
+    assert "文风" in cfg.prompts.student
+    assert "口语" not in cfg.prompts.student
     rendered = student_prompt(cfg.prompts.student, "HELLO")
     assert "HELLO" in rendered
     assert "{A}" not in rendered

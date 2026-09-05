@@ -23,6 +23,7 @@ __pycache__/
 /lora/adapters/
 /lora/pairs.jsonl
 /lora/pairs.dropped.jsonl
+/lora/logs/
 /lora/*.duckdb
 /lora/*.duckdb.wal
 /lora/*.duckdb.tmp
@@ -30,4 +31,6 @@ __pycache__/
 **/*.duckdb
 **/*.duckdb.wal
 personal_hub/
+/rulers/data/*
+!/rulers/data/.gitkeep
 /env/hardware.toml

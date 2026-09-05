@@ -19,7 +19,7 @@ max_tokens = 256
 
 [student]
 model = "mlx-community/Qwen3-4B-Instruct-2507-4bit"
-adapter_path = "lora/adapters/default"
+adapter_path = "lora/adapters/p0"
 
 [teacher]
 provider = "deepseek"
@@ -33,7 +33,7 @@ model = "mlx-community/Qwen3-Embedding-0.6B-8bit"
 batch_size = 16
 
 [lora]
-iters = 600
+iters = 300
 batch_size = 2
 learning_rate = 1.0e-5
 fine_tune_type = "lora"
@@ -42,7 +42,7 @@ mask_prompt = true
 max_seq_length = 1024
 
 [prompts]
-student = """将下面的文字转写成我的口语。保持原意。不要润色，不要补充，不要解释，不要扩写成更长的段落。
+student = """将下面的文字转写成我的文风。保持原意。不要润色，不要补充，不要解释，不要扩写成更长的段落。
 
 {A}"""
 teacher = """把下面这段改写成常见的大模型书面语：完整、中性、去掉个人口吻和标点习惯。

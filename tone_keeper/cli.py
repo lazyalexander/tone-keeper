@@ -82,6 +82,14 @@ def main(argv: list[str] | None = None) -> int:
     p_ed.add_argument("--pairs", default="lora/pairs.jsonl")
     p_ed.add_argument("--profile", default="data/work/profile.json")
 
+    p_cal = sub.add_parser(
+        "calib-style",
+        help="Calibrate style instrument on held (U,A). Does not change gates. Logs lora/logs/events.jsonl.",
+    )
+    p_cal.add_argument("--units", default="data/work/units.jsonl")
+    p_cal.add_argument("--pairs", default="lora/pairs.jsonl")
+    p_cal.add_argument("--splits", default="data/work/splits.json")
+
     args = parser.parse_args(argv)
     load_dotenv()
     cfg = _cfg(args.config)
@@ -235,11 +243,29 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.cmd == "eval-destroy":
         from tone_keeper.eval.metrics import summarize_destroy
+        from tone_keeper.observe import record
 
         profile = profile_from_dict(json.loads(Path(args.profile).read_text(encoding="utf-8")))
         pairs = load_pairs(Path(args.pairs))
-        ok_pairs = [(p["u"], p["a"]) for p in pairs if p.get("ok")]
-        print(json.dumps(summarize_destroy(ok_pairs, profile), ensure_ascii=False))
+        ok_pairs = [
+            (p["u"], p["a"])
+            for p in pairs
+            if (p.get("ok") or p.get("reason") == "ok") and (p.get("a") or "").strip()
+        ]
+        report = summarize_destroy(ok_pairs, profile)
+        record("eval_destroy", {"profile": args.profile, **report})
+        print(json.dumps(report, ensure_ascii=False))
+        return 0
+
+    if args.cmd == "calib-style":
+        from tone_keeper.fingerprint.calibrate import run_calibration
+
+        units = read_jsonl(Path(args.units))
+        pairs = load_pairs(Path(args.pairs))
+        splits = json.loads(Path(args.splits).read_text(encoding="utf-8"))
+        train_ids = set(splits["train_ids"])
+        summary = run_calibration(units, pairs, train_ids)  # type: ignore[arg-type]
+        print(json.dumps(summary, ensure_ascii=False))
         return 0
 
     return 2

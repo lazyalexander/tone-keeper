@@ -5,7 +5,11 @@ from typing import Any
 
 import numpy as np
 
+from collections.abc import Callable
+
 from tone_keeper.fingerprint.features import extract_features, feature_names
+
+Extractor = Callable[[str], np.ndarray]
 
 
 @dataclass
@@ -28,11 +32,17 @@ def profile_from_dict(data: dict[str, Any]) -> Profile:
     )
 
 
-def build_profile(texts: list[str], ngram_k: int = 512) -> Profile:
+def build_profile(
+    texts: list[str],
+    ngram_k: int = 512,
+    extract: Extractor | None = None,
+    names: list[str] | None = None,
+) -> Profile:
     del ngram_k
     if not texts:
         raise ValueError("build_profile requires at least one text")
-    matrix = np.vstack([extract_features(text) for text in texts])
+    fn = extract or extract_features
+    matrix = np.vstack([fn(text) for text in texts])
     mean = matrix.mean(axis=0)
     std = matrix.std(axis=0)
     std = np.where(std < 1e-8, 1.0, std)
@@ -40,5 +50,5 @@ def build_profile(texts: list[str], ngram_k: int = 512) -> Profile:
         vocab=[],
         mean=mean.tolist(),
         std=std.tolist(),
-        names=feature_names(),
+        names=list(names) if names is not None else feature_names(),
     )

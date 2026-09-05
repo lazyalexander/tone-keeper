@@ -33,6 +33,10 @@ def adapter_dir(root: Path | None = None) -> Path:
     return lora_root(root) / "adapters" / "default"
 
 
+def logs_dir(root: Path | None = None) -> Path:
+    return lora_root(root) / "logs"
+
+
 def ensure_dir(path: Path) -> Path:
     path.mkdir(parents=True, exist_ok=True)
     return path
